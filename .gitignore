@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.vscode/
+raw-txs.txt
+tx-report.txt
+migrate-wallet-linux
+migrate-wallet-macos
+migrate-wallet-win.exe
