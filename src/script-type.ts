@@ -58,7 +58,9 @@ export class ScriptType {
         if (!!address) {
             options.address = address;
         } else {
-            if (this._typeEnum === ScriptTypeEnum.P2TR) {
+            if (this._typeEnum === ScriptTypeEnum.P2SH) {
+                options.redeem = payments.p2wpkh({ pubkey: pubkey as Buffer, network: options.network });
+            } else if (this._typeEnum === ScriptTypeEnum.P2TR) {
                 options.internalPubkey = pubkey?.subarray(1);
             } else {
                 options.pubkey = pubkey;
@@ -69,7 +71,7 @@ export class ScriptType {
             case ScriptTypeEnum.P2PKH:
                 return payments.p2pkh(options);
             case ScriptTypeEnum.P2SH:
-                return payments.p2sh({ redeem: options });
+                return payments.p2sh(options);
             case ScriptTypeEnum.P2WPKH:
                 return payments.p2wpkh(options);
             case ScriptTypeEnum.P2TR:

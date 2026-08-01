@@ -63,7 +63,7 @@ export class UTXOPrivkeyHelper {
 
                     const msg = `Unable to find private key of ${utxoAddress}; checked first ${this._config.addressLimit} addresses.
                     If it's deeper inside the wallet, address_limit should be increased.
-                    Otherwise it's not part of this seed or uses a protocol, like BIP47 or Silent Payments`;
+                    Otherwise it's not part of this seed or uses a protocol like BIP47 or Silent Payments`;
                     console.error(msg);
                     process.exit(1);
                 }

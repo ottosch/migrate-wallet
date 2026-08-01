@@ -45,6 +45,8 @@ network = "testnet"
 seed = "word1 word2 ... word12"
 # Optional BIP39 passphrase (leave empty or omit if none)
 passphrase = ""
+# Max addresses to derive when searching for UTXO private keys (default: 2000)
+address_limit = 2000
 
 [destination_wallet]
 # xpub of the receiving wallet
@@ -53,8 +55,6 @@ xpub = "tpub..."
 type = "segwit"
 # First address index to use (default: 0)
 initial_index = 0
-# Max addresses to derive (default: 2000)
-address_limit = 2000
 
 [transaction]
 # Fee rate in sat/vb (minimum: 0.10, default: 1)

@@ -1,9 +1,10 @@
-import { Psbt } from "bitcoinjs-lib";
+import { Psbt, payments } from "bitcoinjs-lib";
 import { UTXO } from "../model/utxo";
 import * as ecc from "tiny-secp256k1";
 import { ECPairFactory } from "ecpair";
 import { Config } from "../model/config";
 import { Tx } from "../model/tx";
+import { ScriptTypeEnum } from "../script-type";
 const ECPair = ECPairFactory(ecc);
 
 export class TransactionHelper {
@@ -41,6 +42,8 @@ export class TransactionHelper {
 
     private createTx(utxoGroup: UTXO[], recipientAddress: string, fee = 0): Psbt {
         const psbt = new Psbt({ network: this._config.network });
+        // @ts-expect-error __CACHE is internal but writable (bitcoinjs-lib escape hatch)
+        psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = true;
         const rbfSequence = 0xfffffffd;
 
         const seenHex = new Set<string>();
@@ -60,7 +63,13 @@ export class TransactionHelper {
                 uniquePrivKeys.push(privkey);
             }
 
-            const input = {
+            const input: {
+                hash: string;
+                index: number;
+                sequence: number;
+                witnessUtxo: { script: Buffer; value: number };
+                redeemScript?: Buffer;
+            } = {
                 hash: utxo.txid,
                 index: utxo.vout,
                 sequence: rbfSequence,
@@ -69,6 +78,11 @@ export class TransactionHelper {
                     value: utxo.amount,
                 },
             };
+
+            if (utxo.scriptType.typeEnum === ScriptTypeEnum.P2SH) {
+                const pubkey = ECPair.fromPrivateKey(privkey).publicKey;
+                input.redeemScript = payments.p2wpkh({ pubkey, network: this._config.network }).output;
+            }
 
             psbt.addInput(input);
             inputTotal += utxo.amount;

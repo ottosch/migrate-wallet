@@ -93,7 +93,7 @@ export class ConfigHelper {
     }
 
     private parseAddressLimit(): number {
-        const num = Number(this._cfgContent.destination_wallet?.address_limit);
+        const num = Number(this._cfgContent.source_wallet?.address_limit);
         if (!isNaN(num) && Number.isSafeInteger(num) && num >= 1) {
             return num;
         }

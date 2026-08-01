@@ -31,7 +31,6 @@ async function main() {
 
     console.log("start index:");
     console.log(config.destinationWallet.startIndex);
-    // TODO: Also print the address?
 
     const utxos = config.utxos;
     if (utxos.length === 0) {
