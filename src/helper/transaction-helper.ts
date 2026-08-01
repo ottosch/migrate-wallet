@@ -1,4 +1,4 @@
-import { Psbt, payments } from "bitcoinjs-lib";
+import { Psbt, crypto, payments } from "bitcoinjs-lib";
 import { UTXO } from "../model/utxo";
 import * as ecc from "tiny-secp256k1";
 import { ECPairFactory } from "ecpair";
@@ -48,6 +48,7 @@ export class TransactionHelper {
 
         const seenHex = new Set<string>();
         const uniquePrivKeys: Buffer[] = [];
+        const taprootKeys = new Set<string>();
         let inputTotal = 0;
 
         for (const utxo of utxoGroup) {
@@ -63,12 +64,17 @@ export class TransactionHelper {
                 uniquePrivKeys.push(privkey);
             }
 
+            if (utxo.scriptType.typeEnum === ScriptTypeEnum.P2TR) {
+                taprootKeys.add(hex);
+            }
+
             const input: {
                 hash: string;
                 index: number;
                 sequence: number;
                 witnessUtxo: { script: Buffer; value: number };
                 redeemScript?: Buffer;
+                tapInternalKey?: Buffer;
             } = {
                 hash: utxo.txid,
                 index: utxo.vout,
@@ -82,6 +88,9 @@ export class TransactionHelper {
             if (utxo.scriptType.typeEnum === ScriptTypeEnum.P2SH) {
                 const pubkey = ECPair.fromPrivateKey(privkey).publicKey;
                 input.redeemScript = payments.p2wpkh({ pubkey, network: this._config.network }).output;
+            } else if (utxo.scriptType.typeEnum === ScriptTypeEnum.P2TR) {
+                const pubkey = ECPair.fromPrivateKey(privkey).publicKey;
+                input.tapInternalKey = pubkey.subarray(1);
             }
 
             psbt.addInput(input);
@@ -94,10 +103,14 @@ export class TransactionHelper {
         });
 
         for (const priv of uniquePrivKeys) {
-            psbt.signAllInputs(ECPair.fromPrivateKey(priv));
+            const pair = ECPair.fromPrivateKey(priv);
+            const signer = taprootKeys.has(priv.toString("hex"))
+                ? pair.tweak(crypto.taggedHash("TapTweak", pair.publicKey.subarray(1)))
+                : pair;
+            psbt.signAllInputs(signer);
         }
 
-        psbt.validateSignaturesOfAllInputs(this.validator); // TODO: test if this works with taproot inputs
+        psbt.validateSignaturesOfAllInputs(this.validator);
         psbt.finalizeAllInputs();
 
         return psbt;
@@ -129,6 +142,10 @@ export class TransactionHelper {
     }
 
     private validator(pubkey: Buffer, msghash: Buffer, signature: Buffer): boolean {
+        if (pubkey.length === 32) {
+            return ecc.verifySchnorr(msghash, pubkey, signature);
+        }
+
         return ECPair.fromPublicKey(pubkey).verify(msghash, signature);
     }
 }

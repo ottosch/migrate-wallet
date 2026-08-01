@@ -81,7 +81,11 @@ npm run pkg
 
 ## Warning
 
-**Always verify the generated transactions before broadcasting.** This software comes with no warranty. You are solely responsible for verifying that the transactions are correct. Bugs could result in loss of funds.
+**Always verify the generated transactions before broadcasting.** For example, make sure the destination addresses are what you expect.
+
+**Important warning about legacy (P2PKH) wallets**: since this program runs offline, it has to fully trust the UTXO CSV file and **cannot check if the UTXO value is correct**. This is not a problem for segwit (including taproot) UTXOs, because the values are signed, but for legacy UTXOs, **you have to make sure the values are correct or part of the UTXO could be wasted in fees**. Sparrow will export the CSV file with correct values, but keep in mind this warning if you're editing the CSV file!
+
+This software comes with no warranty. You are solely responsible for verifying that the transactions are correct. Bugs could result in loss of funds.
 
 ## License
 

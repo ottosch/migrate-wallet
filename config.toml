@@ -10,6 +10,11 @@ seed = "word1 word2 ... wordN"
 # Optional passphrase (BIP39). Default: empty string
 passphrase = ""
 
+# Max number of addresses to derive when searching for UTXO private keys
+# You might need to increase this if the wallet is very deep
+# Default: 2000
+address_limit = 2000
+
 [destination_wallet]
 # xpub (or zpub etc) of the receiving wallet to derive the receiving addresses from
 xpub = "xpub....."
@@ -21,10 +26,6 @@ type = "segwit"
 # Default: 0
 initial_index = 0
 # initial_address = ""
-
-# Max number of addresses to derive. You might need to increase this if the wallet is very deep
-# Default: 2000
-address_limit = 2000
 
 [transaction]
 # Fee rate to use in sat/vb
